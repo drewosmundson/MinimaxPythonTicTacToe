@@ -27,7 +27,8 @@ def checkFirstMove(board):
                 return False
     return True
 
-def miniMax(board, depth, isMaxing):
+def miniMax(board, depth, isMaxing, alpha, beta):
+    #https://www.geeksforgeeks.org/minimax-algorithm-in-game-theory-set-4-alpha-beta-pruning/
     # check if someone has already won
     won, player = checkWin(board)
     if won:
@@ -47,11 +48,14 @@ def miniMax(board, depth, isMaxing):
             for j in range(3):
                 if board[i][j] == 0:   # check each possible move
                     board[i][j] = 1    # computer plays here
-                    _, score = miniMax(board, depth + 1, False)  # now simulate human move
+                    _, score = miniMax(board, depth + 1, False, alpha, beta)  # simulate human move
                     board[i][j] = 0    # undo move (backtrack)
                     if score > bestScore:   # keep move if it’s the best so far
                         bestScore = score
                         bestMove = [i, j]
+                    alpha = max(alpha, bestScore)   # update alpha (best guaranteed score for maximizer)
+                    if beta <= alpha:  # pruning condition no need to check further
+                        break
         return bestMove, bestScore
     else:
         # human is trying to minimize computer's score
@@ -59,14 +63,18 @@ def miniMax(board, depth, isMaxing):
         bestMove = [-1, -1]
         for i in range(3):
             for j in range(3):
-                if board[i][j] == 0:   # check each possible move
-                    board[i][j] = 2    # human plays here
-                    _, score = miniMax(board, depth + 1, True)  # now simulate computer move
-                    board[i][j] = 0    # undo move (backtrack)
-                    if score < bestScore:   # keep move if it’s the best (lowest) so far
+                if board[i][j] == 0: # check each possible move
+                    board[i][j] = 2  # human plays here
+                    _, score = miniMax(board, depth + 1, True, alpha, beta)  # simulate computer move
+                    board[i][j] = 0    # backtrack
+                    if score < bestScore:   # keep move if it’s the best
                         bestScore = score
                         bestMove = [i, j]
+                    beta = min(beta, bestScore)   # update beta best guaranteed score for minimizer
+                    if beta <= alpha:  # pruning condition: no need to check further
+                        break
         return bestMove, bestScore
+
 
 def convertCoordinateToLocation(coordinate):
     for i in range(3):
